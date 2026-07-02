@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: problem-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/coding_judge_problem
+    username: postgres
+    password: Aeiou0@eiou
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8082

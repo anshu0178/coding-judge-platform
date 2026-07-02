@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/coding_judge_auth
+    username: postgres
+    password: Aeiou0@eiou
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8081
+
+jwt:
+  secret: mySuperSecretKeyForCodingJudgePlatform2026MySuperSecretKey

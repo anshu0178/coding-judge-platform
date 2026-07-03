@@ -2,6 +2,7 @@ package com.anshu.codingjudge.problemservice.controller;
 
 import com.anshu.codingjudge.problemservice.dto.CreateProblemRequest;
 import com.anshu.codingjudge.problemservice.entity.Problem;
+import com.anshu.codingjudge.problemservice.security.JwtService;
 import com.anshu.codingjudge.problemservice.service.ProblemService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +15,15 @@ public class ProblemController {
 
     private final ProblemService problemService;
 
+    private final JwtService jwtService;
+
+
     public ProblemController(
-            ProblemService problemService) {
+            ProblemService problemService,
+            JwtService jwtService) {
 
         this.problemService = problemService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping
@@ -57,6 +63,18 @@ public class ProblemController {
         problemService.deleteProblem(id);
 
         return "Problem deleted successfully";
+    }
+
+
+    @GetMapping("/token-test")
+    public String tokenTest(
+            @RequestHeader("Authorization")
+            String authHeader) {
+
+        String token =
+                authHeader.substring(7);
+
+        return jwtService.extractRole(token);
     }
 
 }

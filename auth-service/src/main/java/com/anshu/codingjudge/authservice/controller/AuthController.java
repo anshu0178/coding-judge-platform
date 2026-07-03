@@ -3,11 +3,14 @@ package com.anshu.codingjudge.authservice.controller;
 import com.anshu.codingjudge.authservice.dto.AuthResponse;
 import com.anshu.codingjudge.authservice.dto.LoginRequest;
 import com.anshu.codingjudge.authservice.dto.RegisterRequest;
+import com.anshu.codingjudge.authservice.entity.User;
 import com.anshu.codingjudge.authservice.security.JwtService;
 import com.anshu.codingjudge.authservice.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,5 +54,21 @@ public class AuthController {
         String token = authHeader.substring(7);
 
         return jwtService.extractUsername(token);
+    }
+
+    @GetMapping("/role")
+    public String role(
+            @RequestHeader("Authorization")
+            String authHeader) {
+
+        String token =
+                authHeader.substring(7);
+
+        return jwtService.extractRole(token);
+    }
+
+    @GetMapping("/users")
+    public List<User> getAllUsers() {
+        return authService.getAllUsers();
     }
 }

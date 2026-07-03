@@ -12,6 +12,8 @@ import com.anshu.codingjudge.authservice.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
@@ -75,8 +77,13 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String token =
-                jwtService.generateToken(user.getEmail());
+                jwtService.generateToken(user.getEmail(),
+                        user.getRole());
 
         return new AuthResponse(token);
+    }
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

@@ -2,6 +2,8 @@ package com.anshu.codingjudge.submissionservice.service.impl;
 
 import com.anshu.codingjudge.submissionservice.dto.CreateSubmissionRequest;
 import com.anshu.codingjudge.submissionservice.dto.SubmissionResponse;
+import com.anshu.codingjudge.submissionservice.dto.judge.JudgeRequest;
+import com.anshu.codingjudge.submissionservice.dto.judge.JudgeResponse;
 import com.anshu.codingjudge.submissionservice.entity.Submission;
 import com.anshu.codingjudge.submissionservice.entity.SubmissionStatus;
 import com.anshu.codingjudge.submissionservice.exception.SubmissionNotFoundException;
@@ -9,6 +11,7 @@ import com.anshu.codingjudge.submissionservice.repository.SubmissionRepository;
 import com.anshu.codingjudge.submissionservice.service.SubmissionService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,13 +22,18 @@ import java.util.List;
 public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
+    private final RestTemplate restTemplate;
 
     public SubmissionServiceImpl(
-            SubmissionRepository submissionRepository) {
+            SubmissionRepository submissionRepository,
+            RestTemplate restTemplate) {
 
-        this.submissionRepository = submissionRepository;
+        this.submissionRepository =
+                submissionRepository;
+
+        this.restTemplate =
+                restTemplate;
     }
-
     @Override
     public SubmissionResponse createSubmission(
             CreateSubmissionRequest request,
@@ -54,8 +62,33 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission savedSubmission =
                 submissionRepository.save(submission);
 
+        JudgeRequest judgeRequest =
+                new JudgeRequest();
+
+        judgeRequest.setSubmissionId(
+                savedSubmission.getId());
+
+        JudgeResponse judgeResponse =
+                restTemplate.postForObject(
+                        "http://localhost:8084/api/judge/evaluate",
+                        judgeRequest,
+                        JudgeResponse.class
+                );
+        if (judgeResponse != null) {
+
+            submission.setStatus(
+                    SubmissionStatus.valueOf(
+                            judgeResponse.getStatus()
+                    )
+            );
+
+            submissionRepository.save(submission);
+        }
+
         SubmissionResponse response =
                 new SubmissionResponse();
+
+
 
         response.setId(
                 savedSubmission.getId());

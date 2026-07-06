@@ -32,11 +32,55 @@ public class JudgeServiceImpl implements JudgeService {
         result.setSubmissionId(
                 request.getSubmissionId());
 
-        result.setStatus(
-                JudgeStatus.ACCEPTED);
+        String code =
+                request.getSourceCode();
 
-        result.setOutput(
-                "All test cases passed");
+        System.out.println("Received Code = " + code);
+
+        if (code == null || code.isBlank()) {
+
+            result.setStatus(
+                    JudgeStatus.COMPILATION_ERROR);
+
+            result.setOutput(
+                    "Source code is empty");
+
+        }
+        else if (code.contains("syntax_error")) {
+
+            result.setStatus(
+                    JudgeStatus.COMPILATION_ERROR);
+
+            result.setOutput(
+                    "Compilation failed");
+
+        }
+        else if (code.contains("runtime_error")) {
+
+            result.setStatus(
+                    JudgeStatus.RUNTIME_ERROR);
+
+            result.setOutput(
+                    "Runtime Exception occurred");
+
+        }
+        else if (code.contains("class Solution")) {
+
+            result.setStatus(
+                    JudgeStatus.ACCEPTED);
+
+            result.setOutput(
+                    "All test cases passed");
+
+        }
+        else {
+
+            result.setStatus(
+                    JudgeStatus.WRONG_ANSWER);
+
+            result.setOutput(
+                    "Expected class Solution");
+        }
 
         result.setJudgedAt(
                 LocalDateTime.now());

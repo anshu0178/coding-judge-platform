@@ -68,6 +68,9 @@ public class SubmissionServiceImpl implements SubmissionService {
         judgeRequest.setSubmissionId(
                 savedSubmission.getId());
 
+        judgeRequest.setSourceCode(
+                savedSubmission.getSourceCode());
+
         JudgeResponse judgeResponse =
                 restTemplate.postForObject(
                         "http://localhost:8084/api/judge/evaluate",
@@ -103,7 +106,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 savedSubmission.getLanguage());
 
         response.setStatus(
-                savedSubmission.getStatus());
+                submission.getStatus());
 
         response.setSubmittedAt(
                 savedSubmission.getSubmittedAt());

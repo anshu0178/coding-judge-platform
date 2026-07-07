@@ -2,6 +2,8 @@ server:
   port: 8084
 
 spring:
+  application:
+    name: Judge-Service
   datasource:
     url: jdbc:postgresql://localhost:5432/coding_judge_judge
     username: postgres
@@ -11,3 +13,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

@@ -73,7 +73,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         JudgeResponse judgeResponse =
                 restTemplate.postForObject(
-                        "http://localhost:8084/api/judge/evaluate",
+                        "http://JUDGE-SERVICE/api/judge/evaluate",
                         judgeRequest,
                         JudgeResponse.class
                 );

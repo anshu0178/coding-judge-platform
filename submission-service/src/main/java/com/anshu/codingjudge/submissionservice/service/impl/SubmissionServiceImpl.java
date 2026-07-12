@@ -1,5 +1,6 @@
 package com.anshu.codingjudge.submissionservice.service.impl;
 
+import com.anshu.codingjudge.submissionservice.client.JudgeClient;
 import com.anshu.codingjudge.submissionservice.dto.CreateSubmissionRequest;
 import com.anshu.codingjudge.submissionservice.dto.SubmissionResponse;
 import com.anshu.codingjudge.submissionservice.dto.judge.JudgeRequest;
@@ -9,55 +10,44 @@ import com.anshu.codingjudge.submissionservice.entity.SubmissionStatus;
 import com.anshu.codingjudge.submissionservice.exception.SubmissionNotFoundException;
 import com.anshu.codingjudge.submissionservice.repository.SubmissionRepository;
 import com.anshu.codingjudge.submissionservice.service.SubmissionService;
-
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
-    private final RestTemplate restTemplate;
+    private final JudgeClient judgeClient;
 
     public SubmissionServiceImpl(
             SubmissionRepository submissionRepository,
-            RestTemplate restTemplate) {
+            JudgeClient judgeClient) {
 
-        this.submissionRepository =
-                submissionRepository;
-
-        this.restTemplate =
-                restTemplate;
+        this.submissionRepository = submissionRepository;
+        this.judgeClient = judgeClient;
     }
+
     @Override
+    @Retry(
+            name = "judgeRetry",
+            fallbackMethod = "judgeFallback"
+    )
     public SubmissionResponse createSubmission(
             CreateSubmissionRequest request,
             String userEmail) {
 
         Submission submission = new Submission();
 
-        submission.setProblemId(
-                request.getProblemId());
-
-        submission.setUserEmail(
-                userEmail);
-
-        submission.setLanguage(
-                request.getLanguage());
-
-        submission.setSourceCode(
-                request.getSourceCode());
-
-        submission.setStatus(
-                SubmissionStatus.PENDING);
-
-        submission.setSubmittedAt(
-                LocalDateTime.now());
+        submission.setProblemId(request.getProblemId());
+        submission.setUserEmail(userEmail);
+        submission.setLanguage(request.getLanguage());
+        submission.setSourceCode(request.getSourceCode());
+        submission.setStatus(SubmissionStatus.PENDING);
+        submission.setSubmittedAt(LocalDateTime.now());
 
         Submission savedSubmission =
                 submissionRepository.save(submission);
@@ -71,12 +61,14 @@ public class SubmissionServiceImpl implements SubmissionService {
         judgeRequest.setSourceCode(
                 savedSubmission.getSourceCode());
 
+        System.out.println(
+                "Attempting Judge Call at "
+                        + LocalDateTime.now()
+        );
+
         JudgeResponse judgeResponse =
-                restTemplate.postForObject(
-                        "http://JUDGE-SERVICE/api/judge/evaluate",
-                        judgeRequest,
-                        JudgeResponse.class
-                );
+                judgeClient.evaluate(judgeRequest);
+
         if (judgeResponse != null) {
 
             submission.setStatus(
@@ -91,29 +83,15 @@ public class SubmissionServiceImpl implements SubmissionService {
         SubmissionResponse response =
                 new SubmissionResponse();
 
-
-
-        response.setId(
-                savedSubmission.getId());
-
-        response.setProblemId(
-                savedSubmission.getProblemId());
-
-        response.setUserEmail(
-                savedSubmission.getUserEmail());
-
-        response.setLanguage(
-                savedSubmission.getLanguage());
-
-        response.setStatus(
-                submission.getStatus());
-
-        response.setSubmittedAt(
-                savedSubmission.getSubmittedAt());
+        response.setId(savedSubmission.getId());
+        response.setProblemId(savedSubmission.getProblemId());
+        response.setUserEmail(savedSubmission.getUserEmail());
+        response.setLanguage(savedSubmission.getLanguage());
+        response.setStatus(submission.getStatus());
+        response.setSubmittedAt(savedSubmission.getSubmittedAt());
 
         return response;
     }
-
 
     @Override
     public List<SubmissionResponse> getAllSubmissions() {
@@ -147,10 +125,9 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         Submission submission =
                 submissionRepository.findById(id)
-                        .orElseThrow(
-                                () -> new SubmissionNotFoundException(
-                                        "Submission not found")
-                        );
+                        .orElseThrow(() ->
+                                new SubmissionNotFoundException(
+                                        "Submission not found"));
 
         SubmissionResponse response =
                 new SubmissionResponse();
@@ -170,8 +147,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             String userEmail) {
 
         List<Submission> submissions =
-                submissionRepository
-                        .findByUserEmail(userEmail);
+                submissionRepository.findByUserEmail(
+                        userEmail);
 
         List<SubmissionResponse> responses =
                 new ArrayList<>();
@@ -195,4 +172,38 @@ public class SubmissionServiceImpl implements SubmissionService {
         return responses;
     }
 
+    public SubmissionResponse judgeFallback(
+            CreateSubmissionRequest request,
+            String userEmail,
+            Exception ex) {
+
+        System.out.println(
+                "Fallback executed because: "
+                        + ex.getClass().getName()
+        );
+
+        System.out.println(
+                ex.getMessage()
+        );
+
+        SubmissionResponse response =
+                new SubmissionResponse();
+
+        response.setProblemId(
+                request.getProblemId());
+
+        response.setLanguage(
+                request.getLanguage());
+
+        response.setUserEmail(
+                userEmail);
+
+        response.setStatus(
+                SubmissionStatus.PENDING);
+
+        response.setSubmittedAt(
+                LocalDateTime.now());
+
+        return response;
+    }
 }

@@ -1,0 +1,94 @@
+services:
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+    image: eureka-server
+    container_name: eureka-server
+
+    ports:
+      - "8761:8761"
+
+  auth-service:
+    build:
+      context: ./auth-service
+    image: auth-service
+    container_name: auth-service
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      DB_URL: jdbc:postgresql://host.docker.internal:5432/coding_judge_auth
+      DB_USERNAME: postgres
+      DB_PASSWORD: Aeiou0@eiou
+
+    depends_on:
+      - eureka-server
+
+  problem-service:
+    build:
+      context: ./problem-service
+    image: problem-service
+    container_name: problem-service
+
+    ports:
+      - "8082:8082"
+
+    environment:
+      DB_URL: jdbc:postgresql://host.docker.internal:5432/coding_judge_problem
+      DB_USERNAME: postgres
+      DB_PASSWORD: Aeiou0@eiou
+
+    depends_on:
+      - eureka-server
+
+  submission-service:
+    build:
+      context: ./submission-service
+    image: submission-service
+    container_name: submission-service
+
+    ports:
+      - "8083:8083"
+
+    environment:
+      DB_URL: jdbc:postgresql://host.docker.internal:5432/coding_judge_submission
+      DB_USERNAME: postgres
+      DB_PASSWORD: Aeiou0@eiou
+
+    depends_on:
+      - eureka-server
+
+  judge-service:
+    build:
+      context: ./judge-service
+    image: judge-service
+    container_name: judge-service
+
+    ports:
+      - "8084:8084"
+
+    environment:
+      DB_URL: jdbc:postgresql://host.docker.internal:5432/coding_judge_judge
+      DB_USERNAME: postgres
+      DB_PASSWORD: Aeiou0@eiou
+
+    depends_on:
+      - eureka-server
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    image: api-gateway
+    container_name: api-gateway
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - eureka-server
+      - auth-service
+      - problem-service
+      - submission-service
+      - judge-service

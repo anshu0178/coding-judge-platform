@@ -3,9 +3,9 @@ spring:
     name: submission-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/coding_judge_submission
-    username: postgres
-    password: Aeiou0@eiou
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -21,4 +21,27 @@ jwt:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://eureka-server:8761/eureka
+
+resilience4j:
+  retry:
+    instances:
+      judgeRetry:
+        maxAttempts: 3
+        waitDuration: 2s
+        retryExceptions:
+          - feign.FeignException
+
+  circuitbreaker:
+    instances:
+      judgeService:
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 2
+
+logging:
+  level:
+    io.github.resilience4j.retry: TRACE
+    io.github.resilience4j.circuitbreaker: DEBUG

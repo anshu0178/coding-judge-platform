@@ -5,9 +5,11 @@ import com.anshu.codingjudge.submissionservice.dto.CreateSubmissionRequest;
 import com.anshu.codingjudge.submissionservice.dto.SubmissionResponse;
 import com.anshu.codingjudge.submissionservice.dto.judge.JudgeRequest;
 import com.anshu.codingjudge.submissionservice.dto.judge.JudgeResponse;
+import com.anshu.codingjudge.submissionservice.dto.kafka.SubmissionEvent;
 import com.anshu.codingjudge.submissionservice.entity.Submission;
 import com.anshu.codingjudge.submissionservice.entity.SubmissionStatus;
 import com.anshu.codingjudge.submissionservice.exception.SubmissionNotFoundException;
+import com.anshu.codingjudge.submissionservice.kafka.SubmissionProducer;
 import com.anshu.codingjudge.submissionservice.repository.SubmissionRepository;
 import com.anshu.codingjudge.submissionservice.service.SubmissionService;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -22,13 +24,15 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final JudgeClient judgeClient;
+    private final SubmissionProducer submissionProducer;
 
     public SubmissionServiceImpl(
             SubmissionRepository submissionRepository,
-            JudgeClient judgeClient) {
+            JudgeClient judgeClient, SubmissionProducer submissionProducer) {
 
         this.submissionRepository = submissionRepository;
         this.judgeClient = judgeClient;
+        this.submissionProducer = submissionProducer;
     }
 
     @Override
@@ -52,33 +56,52 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission savedSubmission =
                 submissionRepository.save(submission);
 
-        JudgeRequest judgeRequest =
-                new JudgeRequest();
+        SubmissionEvent event =
+                new SubmissionEvent();
 
-        judgeRequest.setSubmissionId(
+        event.setSubmissionId(
                 savedSubmission.getId());
 
-        judgeRequest.setSourceCode(
+        event.setSourceCode(
                 savedSubmission.getSourceCode());
 
+        event.setLanguage(
+                savedSubmission.getLanguage());
+
+        submissionProducer.sendSubmission(
+                event);
+
+//        JudgeRequest judgeRequest =
+//                new JudgeRequest();
+//
+//        judgeRequest.setSubmissionId(
+//                savedSubmission.getId());
+//
+//        judgeRequest.setSourceCode(
+//                savedSubmission.getSourceCode());
+//
+//        System.out.println(
+//                "Attempting Judge Call at "
+//                        + LocalDateTime.now()
+//        );
+//
+//        JudgeResponse judgeResponse =
+//                judgeClient.evaluate(judgeRequest);
+//
+//        if (judgeResponse != null) {
+//
+//            submission.setStatus(
+//                    SubmissionStatus.valueOf(
+//                            judgeResponse.getStatus()
+//                    )
+//            );
+//
+//            submissionRepository.save(submission);
+//        }
+
         System.out.println(
-                "Attempting Judge Call at "
-                        + LocalDateTime.now()
+                "Submission sent to Kafka"
         );
-
-        JudgeResponse judgeResponse =
-                judgeClient.evaluate(judgeRequest);
-
-        if (judgeResponse != null) {
-
-            submission.setStatus(
-                    SubmissionStatus.valueOf(
-                            judgeResponse.getStatus()
-                    )
-            );
-
-            submissionRepository.save(submission);
-        }
 
         SubmissionResponse response =
                 new SubmissionResponse();
@@ -87,7 +110,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         response.setProblemId(savedSubmission.getProblemId());
         response.setUserEmail(savedSubmission.getUserEmail());
         response.setLanguage(savedSubmission.getLanguage());
-        response.setStatus(submission.getStatus());
+        response.setStatus(SubmissionStatus.PENDING);
         response.setSubmittedAt(savedSubmission.getSubmittedAt());
 
         return response;

@@ -1,12 +1,16 @@
 package com.anshu.codingjudge.problemservice.service.impl;
 
 import com.anshu.codingjudge.problemservice.dto.CreateProblemRequest;
+import com.anshu.codingjudge.problemservice.dto.TestCaseResponse;
 import com.anshu.codingjudge.problemservice.entity.Problem;
+import com.anshu.codingjudge.problemservice.entity.TestCase;
 import com.anshu.codingjudge.problemservice.exception.ProblemNotFoundException;
 import com.anshu.codingjudge.problemservice.repository.ProblemRepository;
+import com.anshu.codingjudge.problemservice.repository.TestCaseRepository;
 import com.anshu.codingjudge.problemservice.service.ProblemService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,16 +18,18 @@ public class ProblemServiceImpl
         implements ProblemService {
 
     private final ProblemRepository problemRepository;
+    private final TestCaseRepository testCaseRepository;
 
     public ProblemServiceImpl(
-            ProblemRepository problemRepository) {
+            ProblemRepository problemRepository,
+            TestCaseRepository testCaseRepository) {
 
         this.problemRepository = problemRepository;
+        this.testCaseRepository = testCaseRepository;
     }
 
     @Override
-    public Problem createProblem(
-            CreateProblemRequest request) {
+    public Problem createProblem(CreateProblemRequest request) {
 
         Problem problem = new Problem();
 
@@ -37,7 +43,21 @@ public class ProblemServiceImpl
         problem.setConstraints(request.getConstraints());
         problem.setCreatedBy(request.getCreatedBy());
 
-        return problemRepository.save(problem);
+        Problem savedProblem = problemRepository.save(problem);
+
+        for (var tc : request.getTestCases()) {
+
+            TestCase testCase = new TestCase();
+
+            testCase.setInput(tc.getInput());
+            testCase.setExpectedOutput(tc.getExpectedOutput());
+            testCase.setHidden(true);
+            testCase.setProblem(savedProblem);
+
+            testCaseRepository.save(testCase);
+        }
+
+        return savedProblem;
     }
     @Override
     public List<Problem> getAllProblems() {
@@ -84,4 +104,34 @@ public class ProblemServiceImpl
 
         problemRepository.delete(problem);
     }
+
+    @Override
+    public List<TestCaseResponse> getTestCases(Long problemId) {
+
+        List<TestCase> testCases =
+                testCaseRepository.findByProblemId(problemId);
+
+        List<TestCaseResponse> responses =
+                new ArrayList<>();
+
+        for (TestCase testCase : testCases) {
+
+            if (testCase.isHidden()) {
+
+                TestCaseResponse response =
+                        new TestCaseResponse();
+
+                response.setInput(testCase.getInput());
+
+                response.setExpectedOutput(
+                        testCase.getExpectedOutput());
+
+                responses.add(response);
+            }
+        }
+
+        return responses;
+    }
+
+
 }

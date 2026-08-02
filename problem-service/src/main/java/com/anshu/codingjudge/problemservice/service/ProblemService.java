@@ -1,6 +1,7 @@
 package com.anshu.codingjudge.problemservice.service;
 
 import com.anshu.codingjudge.problemservice.dto.CreateProblemRequest;
+import com.anshu.codingjudge.problemservice.dto.TestCaseResponse;
 import com.anshu.codingjudge.problemservice.entity.Problem;
 
 import java.util.List;
@@ -18,4 +19,6 @@ public interface ProblemService {
             Long id,
             CreateProblemRequest request);
     void deleteProblem(Long id);
+
+    List<TestCaseResponse> getTestCases(Long problemId);
 }

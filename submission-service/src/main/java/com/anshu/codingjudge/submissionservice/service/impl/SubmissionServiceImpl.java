@@ -68,8 +68,13 @@ public class SubmissionServiceImpl implements SubmissionService {
         event.setLanguage(
                 savedSubmission.getLanguage());
 
+        event.setProblemId
+                (savedSubmission.getProblemId());
+
         submissionProducer.sendSubmission(
                 event);
+
+
 
 //        JudgeRequest judgeRequest =
 //                new JudgeRequest();

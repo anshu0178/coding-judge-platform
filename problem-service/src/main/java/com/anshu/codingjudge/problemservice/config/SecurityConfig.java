@@ -38,6 +38,11 @@ public class SecurityConfig {
                         // Everyone with valid token can read
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/api/problems/*/testcases"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                HttpMethod.GET,
                                 "/api/problems/**"
                         ).hasAnyRole("USER", "ADMIN")
 

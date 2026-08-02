@@ -5,6 +5,7 @@ public class SubmissionEvent {
     private Long submissionId;
     private String sourceCode;
     private String language;
+    private Long problemId;
 
     public SubmissionEvent() {
     }
@@ -31,5 +32,12 @@ public class SubmissionEvent {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public Long getProblemId() {
+        return problemId;
+    }
+    public void setProblemId(Long problemId) {
+        this.problemId = problemId;
     }
 }

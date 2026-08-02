@@ -1,10 +1,12 @@
 package com.anshu.codingjudge.problemservice.controller;
 
 import com.anshu.codingjudge.problemservice.dto.CreateProblemRequest;
+import com.anshu.codingjudge.problemservice.dto.TestCaseResponse;
 import com.anshu.codingjudge.problemservice.entity.Problem;
 import com.anshu.codingjudge.problemservice.security.JwtService;
 import com.anshu.codingjudge.problemservice.service.ProblemService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -75,6 +77,15 @@ public class ProblemController {
                 authHeader.substring(7);
 
         return jwtService.extractRole(token);
+    }
+
+    @GetMapping("/{problemId}/testcases")
+    public ResponseEntity<List<TestCaseResponse>>
+    getTestCases(@PathVariable Long problemId) {
+
+        return ResponseEntity.ok(
+                problemService.getTestCases(problemId)
+        );
     }
 
 }

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class CreateProblemRequest {
@@ -24,6 +26,8 @@ public class CreateProblemRequest {
     private String sampleOutput;
     private String constraints;
     private String createdBy;
+
+    private List<TestCaseRequest> testCases;
 
     public CreateProblemRequest() {
     }

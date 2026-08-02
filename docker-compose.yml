@@ -91,6 +91,21 @@ services:
     depends_on:
       - eureka-server
 
+  execution-service:
+    build:
+      context: ./execution-service
+    image: execution-service
+    container_name: execution-service
+
+    ports:
+      - "8085:8085"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    depends_on:
+      - eureka-server
+
   api-gateway:
     build:
       context: ./api-gateway
@@ -106,3 +121,4 @@ services:
       - problem-service
       - submission-service
       - judge-service
+      - execution-service

@@ -1,8 +1,11 @@
 package com.anshu.codingjudge.problemservice.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -39,6 +42,14 @@ public class Problem {
     private String constraints;
 
     private String createdBy;
+
+    @JsonManagedReference
+    @OneToMany(
+            mappedBy = "problem",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<TestCase> testCases;
 
     public Problem() {
     }

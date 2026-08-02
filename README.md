@@ -18,7 +18,6 @@ A scalable online coding judge platform built using Spring Boot Microservices.
 - Spring Data JPA
 - MySQL
 - Docker
-- RabbitMQ
 - Redis
 
 ## Features
@@ -37,4 +36,4 @@ A scalable online coding judge platform built using Spring Boot Microservices.
 - JWT Authentication
 - Docker Deployment
 - Redis Caching
-- RabbitMQ Messaging
+
